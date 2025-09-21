@@ -60,8 +60,6 @@ class Settings:
         except (json.JSONDecodeError, TypeError, ValueError):
             self.cors_origins = [origin.strip() for origin in cors_origins_str.split(",")]
 
-        self.frontend_dir = get_env_str("FRONTEND_DIR", "frontend directory path")
-        self.static_dir = get_env_str("STATIC_DIR", "static files directory path")
         self.secret_key = get_env_str("SECRET_KEY", "application secret key")
         self.default_user_id = get_env_str("DEFAULT_USER_ID", "default user identifier")
         self.gemini_api_key = get_env_str("GEMINI_API_KEY", "Google Gemini API key")
