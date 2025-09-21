@@ -108,8 +108,6 @@ class TestSettings:
             "PORT": "8000",
             "DEBUG": "true",
             "CORS_ORIGINS": '["http://localhost:3000"]',
-            "FRONTEND_DIR": "./frontend",
-            "STATIC_DIR": "./static",
             "SECRET_KEY": "test-key",
             "DEFAULT_USER_ID": "test_user",
             "GEMINI_API_KEY": "test-api-key",
@@ -124,8 +122,6 @@ class TestSettings:
             "port": 8000,
             "debug": True,
             "cors_origins": ["http://localhost:3000"],
-            "frontend_dir": "./frontend",
-            "static_dir": "./static",
             "secret_key": "test-key",
             "default_user_id": "test_user",
             "gemini_api_key": "test-api-key",
@@ -140,8 +136,6 @@ class TestSettings:
         assert settings.port == expected_values["port"]
         assert settings.debug is expected_values["debug"]
         assert settings.cors_origins == expected_values["cors_origins"]
-        assert settings.frontend_dir == expected_values["frontend_dir"]
-        assert settings.static_dir == expected_values["static_dir"]
         assert settings.secret_key == expected_values["secret_key"]
         assert settings.default_user_id == expected_values["default_user_id"]
         assert settings.gemini_api_key == expected_values["gemini_api_key"]
@@ -154,8 +148,6 @@ class TestSettings:
             "PORT": "8000",
             "DEBUG": "true",
             "CORS_ORIGINS": "http://localhost:3000,http://127.0.0.1:3000",
-            "FRONTEND_DIR": "./frontend",
-            "STATIC_DIR": "./static",
             "SECRET_KEY": "test-key",
             "DEFAULT_USER_ID": "test_user",
             "GEMINI_API_KEY": "test-api-key",
