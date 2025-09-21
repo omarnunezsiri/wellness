@@ -39,7 +39,7 @@ target-version = "py312"
 # Basic set of useful rules
 select = [
     "E",    # pycodestyle errors
-    "W",    # pycodestyle warnings  
+    "W",    # pycodestyle warnings
     "F",    # pyflakes
     "I",    # isort (import sorting)
     "B",    # flake8-bugbear (common bugs)
