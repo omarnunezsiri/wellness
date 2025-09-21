@@ -8,8 +8,9 @@ along with database session management and connection setup.
 from sqlalchemy import Boolean, Column, Integer, String, Text, create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-from .config import settings
+from .config import get_settings
 
+settings = get_settings()
 database_url = settings.database_url
 
 engine = create_engine(

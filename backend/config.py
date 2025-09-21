@@ -4,6 +4,7 @@ Configuration management for the Daily Wellness Tracker application.
 
 import json
 import os
+from functools import lru_cache
 
 from dotenv import load_dotenv
 
@@ -66,4 +67,7 @@ class Settings:
         self.gemini_api_key = get_env_str("GEMINI_API_KEY", "Google Gemini API key")
 
 
-settings = Settings()
+@lru_cache(maxsize=1)
+def get_settings() -> Settings:
+    """Get the application settings instance (cached singleton)."""
+    return Settings()

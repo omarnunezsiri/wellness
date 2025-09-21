@@ -8,9 +8,11 @@ from pydantic import BaseModel, field_validator
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from backend.config import settings
+from backend.config import get_settings
 from backend.database import Affirmation, DailyTask, SessionLocal, get_db
 from backend.task_ai import TaskAI
+
+settings = get_settings()
 
 app = FastAPI(
     title="Daily Wellness Tracker API",

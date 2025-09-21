@@ -15,25 +15,9 @@ from backend.main import app
 
 @pytest.fixture(scope="session")
 def test_env():
-    """Set up test environment variables."""
-    test_env_vars = {
-        "DATABASE_URL": "sqlite:///./test.db",
-        "HOST": "127.0.0.1",
-        "PORT": "8000",
-        "DEBUG": "true",
-        "CORS_ORIGINS": '["http://localhost:3000"]',
-        "FRONTEND_DIR": "./frontend/dist",
-        "STATIC_DIR": "./frontend/dist/assets",
-        "SECRET_KEY": "test-secret-key-123",
-        "DEFAULT_USER_ID": "test_user",
-        "GEMINI_API_KEY": "test-api-key",
-    }
+    """Clean up test database after all tests."""
 
-    # Set test environment variables
-    for key, value in test_env_vars.items():
-        os.environ[key] = value
-
-    yield test_env_vars
+    yield
 
     # Clean up test database file with retry logic
     for attempt in range(3):
@@ -61,7 +45,8 @@ def test_db(test_env):
     engine = create_engine("sqlite:///./test.db", connect_args={"check_same_thread": False})
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-    # Create all tables
+    # Clean state for each test
+    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
 
     def override_get_db():
