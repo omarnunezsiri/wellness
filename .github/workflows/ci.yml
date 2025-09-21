@@ -29,6 +29,7 @@ jobs:
     - name: Install dependencies
       run: |
         uv sync
+        uv sync --extra dev
 
     - name: Run pre-commit checks
       run: |
@@ -64,6 +65,7 @@ jobs:
     - name: Install dependencies
       run: |
         uv sync
+        uv sync --extra dev
 
     - name: Run ruff linting
       run: |
