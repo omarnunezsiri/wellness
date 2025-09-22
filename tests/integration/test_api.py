@@ -48,10 +48,11 @@ class TestAffirmationsAPI:
 class TestTasksAPI:
     """Test tasks API endpoints."""
 
-    def test_create_task_success(self, client):
+    def test_create_task_success(self, client, test_user):
         """Test successful task creation."""
         # Arrange
-        task_data = {"task_text": "Test task", "user_id": "test_user"}
+        user_id = test_user
+        task_data = {"task_text": "Test task", "user_id": user_id}
         test_date = "2024-01-01"
 
         # Act
@@ -64,12 +65,13 @@ class TestTasksAPI:
         assert data["completed"] is False
         assert "id" in data
 
-    def test_create_task_validation_too_short(self, client):
+    def test_create_task_validation_too_short(self, client, test_user):
         """Test task creation with text too short."""
         # Arrange
+        user_id = test_user
         task_data = {
             "task_text": "Hi",  # Only 2 characters
-            "user_id": "test_user",
+            "user_id": user_id,
         }
 
         # Act
@@ -78,12 +80,13 @@ class TestTasksAPI:
         # Assert
         assert response.status_code == 422
 
-    def test_create_task_validation_too_long(self, client):
+    def test_create_task_validation_too_long(self, client, test_user):
         """Test task creation with text too long."""
         # Arrange
+        user_id = test_user
         task_data = {
             "task_text": "a" * 101,  # 101 characters
-            "user_id": "test_user",
+            "user_id": user_id,
         }
 
         # Act
@@ -92,18 +95,19 @@ class TestTasksAPI:
         # Assert
         assert response.status_code == 422
 
-    def test_update_task_completion(self, client, test_db):
+    def test_update_task_completion(self, client, test_db, test_user):
         """Test updating task completion status."""
         # Arrange
+        user_id = test_user
         db = test_db()
-        task = DailyTask(task_text="Test task", created_date="2024-01-01", user_id="test_user", completed=False)
+        task = DailyTask(task_text="Test task", created_date="2024-01-01", user_id=user_id, completed=False)
         db.add(task)
         db.commit()
         db.refresh(task)
         task_id = task.id
         db.close()
 
-        update_data = {"completed": True}
+        update_data = {"completed": True, "user_id": user_id}
 
         # Act
         response = client.put(f"/api/tasks/{task_id}", json=update_data)
@@ -113,11 +117,12 @@ class TestTasksAPI:
         data = response.json()
         assert data["completed"] is True
 
-    def test_update_task_not_found(self, client):
+    def test_update_task_not_found(self, client, test_user):
         """Test updating non-existent task."""
         # Arrange
+        user_id = test_user
         non_existent_task_id = 999
-        update_data = {"completed": True}
+        update_data = {"completed": True, "user_id": user_id}
 
         # Act
         response = client.put(f"/api/tasks/{non_existent_task_id}", json=update_data)
@@ -125,11 +130,12 @@ class TestTasksAPI:
         # Assert
         assert response.status_code == 404
 
-    def test_delete_task_success(self, client, test_db):
+    def test_delete_task_success(self, client, test_db, test_user):
         """Test successful task deletion."""
         # Arrange
+        user_id = test_user
         db = test_db()
-        task = DailyTask(task_text="Test task", created_date="2024-01-01", user_id="test_user", completed=False)
+        task = DailyTask(task_text="Test task", created_date="2024-01-01", user_id=user_id, completed=False)
         db.add(task)
         db.commit()
         db.refresh(task)
@@ -137,44 +143,45 @@ class TestTasksAPI:
         db.close()
 
         # Act
-        response = client.delete(f"/api/tasks/{task_id}")
+        response = client.delete(f"/api/tasks/{task_id}?user_id={user_id}")
 
         # Assert
         assert response.status_code == 200
         assert "Task deleted successfully" in response.json()["message"]
 
-    def test_delete_task_not_found(self, client):
+    def test_delete_task_not_found(self, client, test_user):
         """Test deleting non-existent task."""
         # Arrange
+        user_id = test_user
         non_existent_task_id = 999
 
         # Act
-        response = client.delete(f"/api/tasks/{non_existent_task_id}")
+        response = client.delete(f"/api/tasks/{non_existent_task_id}?user_id={user_id}")
 
         # Assert
         assert response.status_code == 404
 
-    def test_get_daily_data(self, client, test_db):
+    def test_get_daily_data(self, client, test_db, test_user):
         """Test getting daily data with affirmation and tasks."""
         # Arrange
+        user_id = test_user
         db = test_db()
         test_date = "2024-01-01"
-        test_user_id = "test_user"
 
         # Add affirmation
         affirmation = Affirmation(text="Daily test affirmation")
         db.add(affirmation)
 
         # Add tasks
-        task1 = DailyTask(task_text="Task 1", created_date=test_date, user_id=test_user_id, completed=False)
-        task2 = DailyTask(task_text="Task 2", created_date=test_date, user_id=test_user_id, completed=True)
+        task1 = DailyTask(task_text="Task 1", created_date=test_date, user_id=user_id, completed=False)
+        task2 = DailyTask(task_text="Task 2", created_date=test_date, user_id=user_id, completed=True)
         db.add(task1)
         db.add(task2)
         db.commit()
         db.close()
 
         # Act
-        response = client.get(f"/api/daily-data?date={test_date}&user_id={test_user_id}")
+        response = client.get(f"/api/daily-data?date={test_date}&user_id={user_id}")
 
         # Assert
         assert response.status_code == 200
@@ -240,3 +247,18 @@ class TestRootAPI:
         assert response.status_code == 200
         data = response.json()
         assert data["message"] == expected_message
+
+
+@pytest.mark.integration
+class TestUsersAPI:
+    """Test users API endpoints."""
+
+    def test_create_user(self, client):
+        """Test creating a user via the API."""
+        # Act
+        response = client.post("/api/users")
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert "user_id" in data

@@ -102,6 +102,7 @@ const useTasks = (userId) => {
           },
           body: JSON.stringify({
             completed: completed,
+            user_id: userId,
           }),
         },
       );
@@ -129,14 +130,14 @@ const useTasks = (userId) => {
       );
       throw err;
     }
-  }, []);
+  }, [userId]);
 
   const deleteTask = useCallback(async (taskId) => {
     setError(null);
 
     try {
       const response = await fetch(
-        `${config.API_BASE_URL}${config.API_ENDPOINTS.TASKS}/${taskId}`,
+        `${config.API_BASE_URL}${config.API_ENDPOINTS.TASKS}/${taskId}?user_id=${userId}`,
         {
           method: "DELETE",
         },
@@ -152,7 +153,7 @@ const useTasks = (userId) => {
       console.error("Error deleting task:", err);
       throw err;
     }
-  }, []);
+  }, [userId]);
 
   return {
     tasks,

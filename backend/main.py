@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from html import escape
 
@@ -9,7 +10,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from backend.config import get_settings
-from backend.database import Affirmation, DailyTask, SessionLocal, get_db
+from backend.database import Affirmation, DailyTask, SessionLocal, User, get_db
 from backend.task_ai import TaskAI
 
 settings = get_settings()
@@ -57,6 +58,7 @@ class TaskCreate(BaseModel):
 
 class TaskUpdate(BaseModel):
     completed: bool
+    user_id: str
 
 
 def add_sample_affirmations():
@@ -85,6 +87,25 @@ def add_sample_affirmations():
 add_sample_affirmations()
 
 
+def validate_user_id(user_id: str, db: Session) -> bool:
+    """Validate that a user_id exists in the database."""
+    user = db.query(User).filter(User.user_id == user_id).first()
+    return user is not None
+
+
+@app.post("/api/users")
+def create_user(db: Session = DB_DEPENDENCY):
+    """Creates a new user with a unique UUID."""
+    user_id = str(uuid.uuid4())
+
+    new_user = User(user_id=user_id)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return {"user_id": user_id}
+
+
 @app.get("/")
 def read_root():
     return {"message": "Daily Wellness Tracker API"}
@@ -101,8 +122,14 @@ def get_random_affirmation(db: Session = DB_DEPENDENCY):
 
 
 @app.get("/api/daily-data")
-def get_daily_data(date: str = "", user_id: str = settings.default_user_id, db: Session = DB_DEPENDENCY):
+def get_daily_data(date: str = "", user_id: str = "", db: Session = DB_DEPENDENCY):
     """Fetches daily data including an affirmation and tasks for a specific date and user."""
+    if not user_id:
+        raise HTTPException(status_code=400, detail="user_id is required")
+
+    if not validate_user_id(user_id, db):
+        raise HTTPException(status_code=401, detail="Invalid user_id")
+
     if not date:
         date = datetime.now().strftime("%Y-%m-%d")
 
@@ -119,6 +146,9 @@ def get_daily_data(date: str = "", user_id: str = settings.default_user_id, db: 
 @app.post("/api/tasks")
 def create_task(task_data: TaskCreate, date: str = "", db: Session = DB_DEPENDENCY):
     """Creates a new task for a given date and user."""
+    if not validate_user_id(task_data.user_id, db):
+        raise HTTPException(status_code=401, detail="Invalid user_id")
+
     if not date:
         date = datetime.now().strftime("%Y-%m-%d")
 
@@ -134,10 +164,13 @@ def create_task(task_data: TaskCreate, date: str = "", db: Session = DB_DEPENDEN
 @app.put("/api/tasks/{task_id}")
 def update_task(task_id: int, task_update: TaskUpdate, db: Session = DB_DEPENDENCY):
     """Updates the completion status of a task."""
-    task = db.query(DailyTask).filter(DailyTask.id == task_id).first()
+    if not validate_user_id(task_update.user_id, db):
+        raise HTTPException(status_code=401, detail="Invalid user_id")
+
+    task = db.query(DailyTask).filter(DailyTask.id == task_id, DailyTask.user_id == task_update.user_id).first()
 
     if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
+        raise HTTPException(status_code=404, detail="Task not found or access denied")
 
     # Maintain consistency with dynamic attribute updates
     setattr(task, "completed", task_update.completed)
@@ -147,12 +180,18 @@ def update_task(task_id: int, task_update: TaskUpdate, db: Session = DB_DEPENDEN
 
 
 @app.delete("/api/tasks/{task_id}")
-def delete_task(task_id: int, db: Session = DB_DEPENDENCY):
+def delete_task(task_id: int, user_id: str = "", db: Session = DB_DEPENDENCY):
     """Deletes a task from the database."""
-    task = db.query(DailyTask).filter(DailyTask.id == task_id).first()
+    if not user_id:
+        raise HTTPException(status_code=400, detail="user_id is required")
+
+    if not validate_user_id(user_id, db):
+        raise HTTPException(status_code=401, detail="Invalid user_id")
+
+    task = db.query(DailyTask).filter(DailyTask.id == task_id, DailyTask.user_id == user_id).first()
 
     if not task:
-        raise HTTPException(status_code=404, detail="Task not found")
+        raise HTTPException(status_code=404, detail="Task not found or access denied")
 
     db.delete(task)
     db.commit()

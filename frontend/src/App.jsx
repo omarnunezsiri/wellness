@@ -7,10 +7,10 @@ import DailyPlanner from "./pages/DailyPlanner";
 
 function App() {
   const [view, setView] = useState("landing");
-  const userId = useUserId();
+  const { userId, loading } = useUserId();
 
   // Don't render anything until we have a user ID
-  if (!userId) {
+  if (loading || !userId) {
     return (
       <div id="root">
         <FallingLeaves />

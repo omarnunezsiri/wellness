@@ -3,13 +3,14 @@ Pytest configuration and shared fixtures for the test suite.
 """
 
 import os
+import uuid
 
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from backend.database import Base, get_db
+from backend.database import Base, User, get_db
 from backend.main import app
 
 
@@ -40,7 +41,7 @@ def test_env():
 
 
 @pytest.fixture(scope="function")
-def test_db(test_env):
+def test_db():
     """Create a test database session."""
     engine = create_engine("sqlite:///./test.db", connect_args={"check_same_thread": False})
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -70,6 +71,21 @@ def test_db(test_env):
 def client(test_db):
     """Create a test client."""
     return TestClient(app)
+
+
+@pytest.fixture(scope="function")
+def test_user(test_db):
+    """Create a user directly in the database for testing."""
+    db = test_db()
+    user_id = str(uuid.uuid4())
+
+    user = User(user_id=user_id)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    db.close()
+
+    return user_id
 
 
 @pytest.fixture

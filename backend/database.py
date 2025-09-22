@@ -5,7 +5,9 @@ This module defines SQLAlchemy models for storing affirmations and daily tasks,
 along with database session management and connection setup.
 """
 
-from sqlalchemy import Boolean, Column, Integer, String, Text, create_engine
+from datetime import UTC, datetime
+
+from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text, create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 from .config import get_settings
@@ -20,6 +22,26 @@ engine = create_engine(
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
+
+
+class User(Base):
+    """
+    Model for storing user information.
+
+    This table tracks registered users with their unique identifiers
+    and creation timestamps for proper user management and validation.
+
+    Attributes:
+        id: Primary key, auto-incrementing integer identifier
+        user_id: Unique UUID string identifier for the user
+        created_at: Timestamp when the user was created
+    """
+
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(String, unique=True, nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
 
 class Affirmation(Base):
