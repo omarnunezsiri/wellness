@@ -88,6 +88,22 @@ class DailyTask(Base):
     user_id = Column(String, default="default_user", index=True)
 
 
+class OTP(Base):
+    __tablename__ = "otps"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    otp = Column(String, unique=True, nullable=False)
+    uuid = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), default=datetime.now(UTC), nullable=False)
+    validity_period = Column(Integer, nullable=False)
+
+    def __init__(self, otp: str, uuid: str, validity_period: int = 15):
+        self.otp = otp
+        self.uuid = uuid
+        self.validity_period = validity_period
+        self.created_at = datetime.now(UTC)
+
+
 Base.metadata.create_all(bind=engine)
 
 
