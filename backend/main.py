@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 from html import escape
+from typing import cast
 
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException
@@ -10,7 +11,8 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from backend.config import get_settings
-from backend.database import Affirmation, DailyTask, SessionLocal, User, get_db
+from backend.database import OTP, Affirmation, DailyTask, SessionLocal, User, get_db
+from backend.otp_handler import generate_and_store_otp, validate_otp
 from backend.task_ai import TaskAI
 
 settings = get_settings()
@@ -59,6 +61,15 @@ class TaskCreate(BaseModel):
 class TaskUpdate(BaseModel):
     completed: bool
     user_id: str
+
+
+class SyncCodeGenerate(BaseModel):
+    uuid: str
+
+
+class SyncCodeValidate(BaseModel):
+    sync_code: str
+    current_uuid: str
 
 
 def add_sample_affirmations():
@@ -209,6 +220,61 @@ def celebrate_task(task: dict):
 
     celebration_message = task_ai.celebrate_task_completion(completed_task)
     return {"message": celebration_message}
+
+
+@app.post("/api/sync/generate-code")
+def generate_sync_code(request: SyncCodeGenerate, db: Session = DB_DEPENDENCY):
+    """Generate a sync code (OTP) for the given UUID."""
+    if not request.uuid:
+        raise HTTPException(status_code=400, detail="uuid is required")
+
+    if not validate_user_id(request.uuid, db):
+        raise HTTPException(status_code=401, detail="Invalid user_id")
+
+    try:
+        # Check if there's already a valid OTP for this UUID
+        existing_otps = db.query(OTP).filter_by(uuid=request.uuid).all()
+        for otp_entry in existing_otps:
+            if validate_otp(request.uuid, cast(str, otp_entry.otp), db):
+                return {"sync_code": otp_entry.otp}
+
+        # Generate a new OTP if no valid one exists
+        sync_code = generate_and_store_otp(request.uuid, db, validity_period=15)
+        return {"sync_code": sync_code}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate sync code: {str(e)}") from e
+
+
+@app.post("/api/sync/validate-code")
+def validate_sync_code(request: SyncCodeValidate, db: Session = DB_DEPENDENCY):
+    """Validate a sync code and return the associated UUID."""
+    if not request.sync_code:
+        raise HTTPException(status_code=400, detail="sync_code is required")
+
+    try:
+        otp_entry = db.query(OTP).filter_by(otp=request.sync_code).first()
+
+        if not otp_entry:
+            raise HTTPException(status_code=400, detail="Invalid sync code")
+
+        # Prevent self-sync: check if the sync code belongs to the current user
+        if request.current_uuid and str(otp_entry.uuid) == request.current_uuid:
+            raise HTTPException(status_code=400, detail="Cannot sync with your own device")
+
+        # Validate the OTP
+        is_valid = validate_otp(cast(str, otp_entry.uuid), request.sync_code, db)
+
+        if not is_valid:
+            raise HTTPException(status_code=400, detail="Sync code has expired")
+
+        # Return the UUID associated with this sync code
+        return {"uuid": otp_entry.uuid}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to validate sync code: {str(e)}") from e
 
 
 if __name__ == "__main__":

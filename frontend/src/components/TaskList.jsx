@@ -2,7 +2,7 @@ import { useState } from "react";
 import TaskItem from "./TaskItem";
 import SyncModal from "./SyncModal";
 
-const TaskList = ({ tasks, onToggleComplete, onDelete, onAddTask }) => {
+const TaskList = ({ tasks, onToggleComplete, onDelete, onAddTask, userId }) => {
   const [showInput, setShowInput] = useState(false);
   const [newTaskText, setNewTaskText] = useState("");
   const [showSyncModal, setShowSyncModal] = useState(false);
@@ -124,6 +124,7 @@ const TaskList = ({ tasks, onToggleComplete, onDelete, onAddTask }) => {
       <SyncModal
         show={showSyncModal}
         onClose={() => setShowSyncModal(false)}
+        userId={userId}
       />
     </div>
   );

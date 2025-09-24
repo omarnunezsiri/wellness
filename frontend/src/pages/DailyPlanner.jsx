@@ -135,6 +135,7 @@ const DailyPlanner = ({ userId, onBackToLanding }) => {
             onToggleComplete={handleToggleTask}
             onDelete={handleDeleteTask}
             onAddTask={handleAddTask}
+            userId={userId}
           />
         </div>
       )}

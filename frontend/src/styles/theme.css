@@ -821,6 +821,22 @@ body {
     border: 2px solid var(--deep-rust);
     font-size: 0.9rem;
     padding: 0.5rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.copy-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(213, 140, 95, 0.4);
+}
+
+.copy-btn.copied {
+    animation: gentle-bounce 0.3s ease-in-out;
+}
+
+@keyframes gentle-bounce {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
 }
 
 .sync-code-input {
@@ -891,6 +907,17 @@ body {
 
 .sync-instructions li {
     margin-bottom: 0.25rem;
+}
+
+.sync-error {
+    background: #ffebee;
+    color: #c62828;
+    border: 1px solid #ef5350;
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    text-align: center;
 }
 
 .back-btn {

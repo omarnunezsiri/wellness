@@ -49,7 +49,9 @@ def generate_and_store_otp(uuid: str, db_session: Session, validity_period: int 
         str: The generated OTP.
     """
     otp = generate_otp(uuid, validity_period=validity_period, timestamp=datetime.now(UTC))
-    otp_entry = OTP(otp=otp, uuid=uuid, validity_period=validity_period)
+    # Store OTP in lowercase for consistent case-insensitive validation
+    otp_normalized = otp.lower()
+    otp_entry = OTP(otp=otp_normalized, uuid=uuid, validity_period=validity_period)
     db_session.add(otp_entry)
     db_session.commit()
     return otp
@@ -68,7 +70,9 @@ def validate_otp(uuid: str, otp: str, db_session: Session) -> bool:
         bool: True if the OTP is valid, False otherwise.
     """
 
-    otp_entry = db_session.query(OTP).filter_by(otp=otp, uuid=uuid).first()
+    # Normalize OTP to lowercase for case-insensitive comparison
+    otp_normalized = otp.lower().strip()
+    otp_entry = db_session.query(OTP).filter_by(otp=otp_normalized, uuid=uuid).first()
     if otp_entry is None:
         return False
 
