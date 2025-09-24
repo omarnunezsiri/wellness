@@ -1,9 +1,11 @@
 import { useState } from "react";
 import TaskItem from "./TaskItem";
+import SyncModal from "./SyncModal";
 
 const TaskList = ({ tasks, onToggleComplete, onDelete, onAddTask }) => {
   const [showInput, setShowInput] = useState(false);
   const [newTaskText, setNewTaskText] = useState("");
+  const [showSyncModal, setShowSyncModal] = useState(false);
 
   const handleSaveTask = () => {
     if (newTaskText.trim()) {
@@ -36,14 +38,23 @@ const TaskList = ({ tasks, onToggleComplete, onDelete, onAddTask }) => {
       {/* Tasks Header with inline Add Task button */}
       <div className="tasks-header">
         <h3>Today's Tasks</h3>
-        {!showInput && (
+        <div className="header-buttons">
+          {!showInput && (
+            <button
+              className="btn add-task-btn"
+              onClick={() => setShowInput(true)}
+            >
+              + Add Task
+            </button>
+          )}
           <button
-            className="btn add-task-btn"
-            onClick={() => setShowInput(true)}
+            className="btn sync-btn"
+            onClick={() => setShowSyncModal(true)}
+            title="Sync tasks across devices"
           >
-            + Add Task
+            ☁️
           </button>
-        )}
+        </div>
       </div>
 
       {/* Task Input Area (when active) */}
@@ -109,6 +120,11 @@ const TaskList = ({ tasks, onToggleComplete, onDelete, onAddTask }) => {
           {progress.completed} of {progress.total} tasks completed
         </p>
       </div>
+
+      <SyncModal
+        show={showSyncModal}
+        onClose={() => setShowSyncModal(false)}
+      />
     </div>
   );
 };

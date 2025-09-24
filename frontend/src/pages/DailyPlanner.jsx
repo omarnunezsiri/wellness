@@ -105,6 +105,11 @@ const DailyPlanner = ({ userId, onBackToLanding }) => {
 
   return (
     <div className="daily-planner">
+      <div className="back-section">
+        <button className="btn home-btn" onClick={onBackToLanding} title="Back to Home">
+        </button>
+      </div>
+
       <DateNavigation
         currentDate={currentDate}
         onPreviousDay={handlePreviousDay}
@@ -133,12 +138,6 @@ const DailyPlanner = ({ userId, onBackToLanding }) => {
           />
         </div>
       )}
-
-      <div className="back-section">
-        <button className="btn back-btn" onClick={onBackToLanding}>
-          🧡 Back to Landing
-        </button>
-      </div>
 
       <CelebrationModal
         show={showCelebration}

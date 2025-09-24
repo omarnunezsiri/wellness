@@ -15,6 +15,7 @@
   ],
   "scripts": {
     "dev": "vite",
+    "dev:lan": "vite --host",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
