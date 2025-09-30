@@ -7,7 +7,7 @@ services:
       - ./data:/app/data
     env_file:
       - .env
-  
+
   frontend:
     image: wellness-frontend:dev
     ports:
