@@ -1,9 +1,11 @@
 import uuid
-from datetime import datetime
+from contextlib import asynccontextmanager
+from datetime import UTC, datetime
 from html import escape
 from typing import cast
 
 import uvicorn
+from apscheduler.schedulers.background import BackgroundScheduler
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, field_validator
@@ -17,7 +19,102 @@ from backend.task_ai import TaskAI
 
 settings = get_settings()
 
+
+def cleanup_expired_otps():
+    """Clean up expired OTPs and ensure users only have one active sync code."""
+    try:
+        with SessionLocal() as db:
+            current_time = datetime.now(UTC)
+
+            # Get all OTPs
+            all_otps = db.query(OTP).all()
+            total_otps = len(all_otps)
+
+            expired_count = 0
+            duplicate_count = 0
+            active_users = 0
+
+            print(f"[{current_time.strftime('%H:%M:%S')}] OTP Cleanup: Found {total_otps} total OTPs in database")
+
+            # Group OTPs by UUID to handle duplicates
+            uuid_otps = {}
+            for otp_entry in all_otps:
+                uuid = str(otp_entry.uuid)
+                if uuid not in uuid_otps:
+                    uuid_otps[uuid] = []
+                uuid_otps[uuid].append(otp_entry)
+
+            active_users = len(uuid_otps)
+            print(f"[{current_time.strftime('%H:%M:%S')}] OTP Cleanup: {active_users} users with sync codes")
+
+            # Process each user's OTPs
+            for _uuid, otps in uuid_otps.items():
+                valid_otps = []
+                expired_otps = []
+
+                # Separate valid from expired OTPs
+                for _i, otp_entry in enumerate(otps):
+                    created_at = otp_entry.created_at
+                    if created_at.tzinfo is None:
+                        created_at = created_at.replace(tzinfo=UTC)
+
+                    validity_period = cast(int, otp_entry.validity_period)
+                    age_minutes = (current_time - created_at).total_seconds() / 60
+
+                    if age_minutes > validity_period:
+                        expired_otps.append(otp_entry)
+                    else:
+                        valid_otps.append(otp_entry)
+
+                # Delete expired OTPs
+                for otp_entry in expired_otps:
+                    db.delete(otp_entry)
+                    expired_count += 1
+
+                # If user has multiple valid OTPs, keep only the newest one
+                if len(valid_otps) > 1:
+                    # Sort by creation time, keep the newest
+                    valid_otps.sort(key=lambda x: x.created_at, reverse=True)
+                    for otp_entry in valid_otps[1:]:  # Delete all but the newest
+                        db.delete(otp_entry)
+                        duplicate_count += 1
+
+            db.commit()
+
+            remaining_otps = total_otps - expired_count - duplicate_count
+            print(f"[{current_time.strftime('%H:%M:%S')}] OTP Cleanup Complete:")
+            print(f"  - Removed {expired_count} expired OTPs")
+            print(f"  - Removed {duplicate_count} duplicate OTPs")
+            print(f"  - {remaining_otps} active OTPs remaining")
+
+            if expired_count == 0 and duplicate_count == 0:
+                print("  - No cleanup needed - all OTPs are valid and unique")
+
+    except Exception as e:
+        print(f"[{datetime.now(UTC).strftime('%H:%M:%S')}] Error during OTP cleanup: {e}")
+
+
+# Initialize background scheduler
+scheduler = BackgroundScheduler()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    scheduler.add_job(
+        func=cleanup_expired_otps, trigger="interval", minutes=1, id="cleanup_expired_otps", replace_existing=True
+    )
+
+    scheduler.start()
+    print("Background OTP cleanup scheduler started")
+
+    yield
+
+    scheduler.shutdown()
+    print("Background OTP cleanup scheduler stopped")
+
+
 app = FastAPI(
+    lifespan=lifespan,
     title="Daily Wellness Tracker API",
     description="A mindful productivity app with daily affirmations and task management",
     version="1.0.0",
@@ -233,13 +330,12 @@ def generate_sync_code(request: SyncCodeGenerate, db: Session = DB_DEPENDENCY):
 
     try:
         # Check if there's already a valid OTP for this UUID
-        existing_otps = db.query(OTP).filter_by(uuid=request.uuid).all()
-        for otp_entry in existing_otps:
-            if validate_otp(request.uuid, cast(str, otp_entry.otp), db):
-                return {"sync_code": otp_entry.otp}
+        existing_otp = db.query(OTP).filter_by(uuid=request.uuid).first()
+        if existing_otp and validate_otp(request.uuid, cast(str, existing_otp.otp), db):
+            return {"sync_code": existing_otp.otp}
 
         # Generate a new OTP if no valid one exists
-        sync_code = generate_and_store_otp(request.uuid, db, validity_period=15)
+        sync_code = generate_and_store_otp(request.uuid, db)
         return {"sync_code": sync_code}
 
     except Exception as e:

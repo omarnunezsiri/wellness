@@ -11,7 +11,7 @@ const useAffirmations = () => {
 
     try {
       const response = await fetch(
-        `${config.API_BASE_URL}${config.API_ENDPOINTS.AFFIRMATIONS}`,
+        `${config.API_ENDPOINTS.AFFIRMATIONS}`,
       );
 
       if (!response.ok) {
@@ -23,6 +23,7 @@ const useAffirmations = () => {
     } catch (err) {
       setError(err.message);
       console.error("Error fetching affirmation:", err);
+      alert(`Error: ${err}`)
       // Fallback affirmation
       setAffirmation("You are capable of amazing things.");
     }

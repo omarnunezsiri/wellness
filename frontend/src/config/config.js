@@ -1,16 +1,12 @@
-// Frontend configuration - ALL environment variables REQUIRED
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-
-if (!apiBaseUrl) {
-  throw new Error("VITE_API_BASE_URL environment variable is required");
-}
-
 const config = {
-  API_BASE_URL: apiBaseUrl,
   API_ENDPOINTS: {
+    USERS: "/api/users",
     AFFIRMATIONS: "/api/affirmations",
     DAILY_DATA: "/api/daily-data",
     TASKS: "/api/tasks",
+    CELEBRATE_TASK: "/api/celebrate-task",
+    SYNC_GENERATE_CODE: "/api/sync/generate-code",
+    SYNC_VALIDATE_CODE: "/api/sync/validate-code",
   },
 };
 

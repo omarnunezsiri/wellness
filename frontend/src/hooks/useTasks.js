@@ -18,7 +18,7 @@ const useTasks = (userId) => {
       try {
         const dateStr = formatDate(date);
         const response = await fetch(
-          `${config.API_BASE_URL}${config.API_ENDPOINTS.DAILY_DATA}?date=${dateStr}&user_id=${userId}`,
+          `${config.API_ENDPOINTS.DAILY_DATA}?date=${dateStr}&user_id=${userId}`,
         );
 
         if (!response.ok) {
@@ -31,6 +31,7 @@ const useTasks = (userId) => {
       } catch (err) {
         setError(err.message);
         console.error("Error loading daily data:", err);
+        alert(err)
         setTasks([]);
       } finally {
         setLoading(false);
@@ -60,7 +61,7 @@ const useTasks = (userId) => {
       try {
         const dateStr = formatDate(date);
         const response = await fetch(
-          `${config.API_BASE_URL}${config.API_ENDPOINTS.TASKS}?date=${dateStr}`,
+          `${config.API_ENDPOINTS.TASKS}?date=${dateStr}`,
           {
             method: "POST",
             headers: {
@@ -94,7 +95,7 @@ const useTasks = (userId) => {
 
     try {
       const response = await fetch(
-        `${config.API_BASE_URL}${config.API_ENDPOINTS.TASKS}/${taskId}`,
+        `${config.API_ENDPOINTS.TASKS}/${taskId}`,
         {
           method: "PUT",
           headers: {
@@ -137,7 +138,7 @@ const useTasks = (userId) => {
 
     try {
       const response = await fetch(
-        `${config.API_BASE_URL}${config.API_ENDPOINTS.TASKS}/${taskId}?user_id=${userId}`,
+        `${config.API_ENDPOINTS.TASKS}/${taskId}?user_id=${userId}`,
         {
           method: "DELETE",
         },

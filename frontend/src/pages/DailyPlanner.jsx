@@ -5,6 +5,7 @@ import DateNavigation from "../components/DateNavigation";
 import AffirmationDisplay from "../components/AffirmationDisplay";
 import TaskList from "../components/TaskList";
 import CelebrationModal from "../components/CelebrationModal";
+import config from "../config/config";
 
 const DailyPlanner = ({ userId, onBackToLanding }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -59,7 +60,7 @@ const DailyPlanner = ({ userId, onBackToLanding }) => {
         console.log("Completed task:", taskToToggle);
         console.log("All tasks:", tasks);
 
-        const response = await fetch("/api/celebrate-task", {
+  const response = await fetch(config.API_ENDPOINTS.CELEBRATE_TASK, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

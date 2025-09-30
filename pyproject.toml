@@ -10,6 +10,7 @@ dependencies = [
     "python-dotenv>=1.1.1",
     "ruff>=0.13.0",
     "sqlalchemy>=2.0.43",
+    "apscheduler>=3.10.4",
 ]
 
 [tool.pytest.ini_options]
@@ -33,8 +34,6 @@ env = [
     "PORT=8000",
     "DEBUG=true",
     "CORS_ORIGINS=[\"http://localhost:3000\"]",
-    "FRONTEND_DIR=./frontend/dist",
-    "STATIC_DIR=./frontend/dist/assets",
     "SECRET_KEY=test-secret-key-123",
     "DEFAULT_USER_ID=test_user",
     "GEMINI_API_KEY=test-api-key",

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import config from "../config/config";
 
 const SyncModal = ({ show, onClose, userId }) => {
   const [mode, setMode] = useState("choose"); // "choose", "generate", "enter"
@@ -16,7 +17,7 @@ const SyncModal = ({ show, onClose, userId }) => {
     setError("");
 
     try {
-      const response = await fetch("/api/sync/generate-code", {
+  const response = await fetch(config.API_ENDPOINTS.SYNC_GENERATE_CODE, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -50,7 +51,7 @@ const SyncModal = ({ show, onClose, userId }) => {
     setError("");
 
     try {
-      const response = await fetch("/api/sync/validate-code", {
+  const response = await fetch(config.API_ENDPOINTS.SYNC_VALIDATE_CODE, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

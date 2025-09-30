@@ -48,7 +48,9 @@ def generate_and_store_otp(uuid: str, db_session: Session, validity_period: int 
     Returns:
         str: The generated OTP.
     """
+
     otp = generate_otp(uuid, validity_period=validity_period, timestamp=datetime.now(UTC))
+
     # Store OTP in lowercase for consistent case-insensitive validation
     otp_normalized = otp.lower()
     otp_entry = OTP(otp=otp_normalized, uuid=uuid, validity_period=validity_period)
