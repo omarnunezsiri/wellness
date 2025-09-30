@@ -12,8 +12,7 @@ export default defineConfig(({ mode }) => {
     server: {
       host: true,
       allowedHosts: [
-        tailscaleHost,
-        '.ts.net'
+        tailscaleHost
       ],
       proxy: {
         "/api": {

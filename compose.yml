@@ -1,0 +1,14 @@
+services:
+  backend:
+    image: wellness-backend:dev
+    ports:
+      - "0.0.0.0:8000:8000"
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - .env
+  
+  frontend:
+    image: wellness-frontend:dev
+    ports:
+      - "0.0.0.0:5173:5173"
