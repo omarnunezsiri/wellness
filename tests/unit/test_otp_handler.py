@@ -8,7 +8,7 @@ from backend.database import OTP, Base
 from backend.otp_handler import generate_and_store_otp, generate_otp, validate_otp
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def db_session():
     # Setup in-memory SQLite database for testing
     engine = create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
