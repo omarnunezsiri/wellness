@@ -1,6 +1,6 @@
 # Daily Wellness Tracker
 
-[![CI](https://github.com/omarnunezsiri/wellness/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/wellness/actions/workflows/ci.yml)
+[![CI](https://github.com/omarnunezsiri/wellness/actions/workflows/ci.yml/badge.svg)](https://github.com/omarnunezsiri/wellness/actions/workflows/ci.yml)
 
 A mindful productivity app that combines daily task planning with positive affirmations, featuring a cozy autumn aesthetic. Built with FastAPI, React, and designed to promote both productivity and mental wellness.
 
@@ -105,22 +105,14 @@ docker build -t wellness-frontend:dev -f frontend/Dockerfile ./frontend
 
 # Start services
 docker compose up
+
+# Stop services
+docker compose down
 ```
 
 Services will be available at:
 - Frontend: `http://localhost:5173`
 - Backend: `http://localhost:8000`
-
-#### 3. Development with Docker
-```bash
-# View logs
-docker compose logs -f backend
-docker compose logs -f frontend
-
-# Rebuild after changes
-docker compose build
-docker compose up
-```
 
 ### Option 3: Production with Nginx + Tailscale
 
@@ -155,7 +147,33 @@ Update your environment files:
 TAILSCALE_HOST=your-tailscale-hostname
 ```
 
-Access your app securely from anywhere at `http://your-tailscale-ip:3000`
+#### 3. Expose with Tailscale
+To make your app accessible via Tailscale:
+
+**Option A: Private access (Tailscale network only)**
+```bash
+# Start Nginx (serving on port 3000)
+mkdir temp logs
+sudo nginx -c nginx.conf -p .
+
+# Expose port 3000 within Tailscale network in background
+tailscale serve --bg 3000
+```
+
+**Option B: Public access (internet via HTTPS)**
+```bash
+# Start Nginx (serving on port 3000)
+mkdir temp logs
+sudo nginx -c nginx.conf -p .
+
+# Expose port 3000 to public internet via Tailscale Funnel
+tailscale funnel --bg 3000
+```
+
+Your app will be accessible at:
+```
+https://<hostname>-<tailnet>.ts.net
+```
 
 ## 🧪 Testing
 
@@ -243,7 +261,7 @@ Once the backend is running, visit `http://127.0.0.1:8000/docs` for interactive 
 - **Google Gemini**: AI-powered celebrations
 
 ### Frontend Stack
-- **React 19**: UI framework
+- **React**: UI framework
 - **Vite**: Build tool and dev server
 - **Modern CSS**: Custom properties, animations
 - **Glassmorphism**: Translucent UI design
@@ -252,7 +270,7 @@ Once the backend is running, visit `http://127.0.0.1:8000/docs` for interactive 
 - **Device Sync**: SHA256-based OTP system with 15-minute expiry
 - **Background Cleanup**: Automatic OTP cleanup every minute
 - **AI Integration**: Contextual task celebration messages
-- **Responsive Design**: Mobile-first approach
+- **Responsive Design**: Desktop and Tablet design
 - **Accessibility**: Semantic HTML and keyboard navigation
 
 ## 🎨 Design System
