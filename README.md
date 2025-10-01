@@ -1,8 +1,15 @@
 # Daily Wellness Tracker
 
+> *This is the foundational version of a wellness app being developed with someone special in mind. While shared publicly for the Codédex challenge and community review, its true purpose is to bring daily joy and mindfulness to someone important in my life. Development will continue privately to create something truly personalized.* ✨
+
 [![CI](https://github.com/omarnunezsiri/wellness/actions/workflows/ci.yml/badge.svg)](https://github.com/omarnunezsiri/wellness/actions/workflows/ci.yml)
 
 A mindful productivity app that combines daily task planning with positive affirmations, featuring a cozy autumn aesthetic. Built with FastAPI, React, and designed to promote both productivity and mental wellness.
+
+<div align="center">
+  <img src=".github/assets/daily-planner-screenshot.png" alt="Daily Wellness Tracker - Daily Planner Interface" width="600"/>
+  <p><em>Daily Planner interface showing task management with autumn-themed design</em></p>
+</div>
 
 ## ✨ Features
 
